@@ -42,7 +42,7 @@ prompt-engineering-toolkit/
 ```
 
 ## Quick Start
-
+Just type this python app.py then it run 
 ```bash
 git clone https://github.com/<your-username>/prompt-engineering-toolkit.git
 cd prompt-engineering-toolkit
