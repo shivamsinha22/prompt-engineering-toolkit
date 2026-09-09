@@ -1,0 +1,18 @@
+{
+  "zero_shot": {
+    "description": "Direct instruction with no examples. Fast, but least controlled.",
+    "template": "Write a {output_type} for {subject}. Keep it {tone} and under {max_words} words."
+  },
+  "few_shot": {
+    "description": "Provides 1-2 examples before the task to anchor style and format.",
+    "template": "Here are two examples of great {output_type}s:\n\nExample 1: {example_1}\n\nExample 2: {example_2}\n\nNow write a {output_type} for {subject}. Keep it {tone} and under {max_words} words."
+  },
+  "chain_of_thought": {
+    "description": "Asks the model to reason step-by-step before producing the final output.",
+    "template": "Think step-by-step about the key selling points of {subject}, then write a {output_type}. First list 3 bullet points of reasoning, then write the final {output_type}. Keep it {tone} and under {max_words} words."
+  },
+  "role_based": {
+    "description": "Assigns a persona/role to the model to shape voice and expertise.",
+    "template": "You are an expert copywriter specializing in {tone} marketing content. Write a {output_type} for {subject}, using persuasive but honest language. Keep it under {max_words} words."
+  }
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Engineering Toolkit</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:24px;color:#222}
+.container{max-width:900px;margin:auto;background:#fff;padding:28px;border-radius:14px;box-shadow:0 4px 20px #0001}
+h1{margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:1/-1}label{font-weight:600;display:block;margin-bottom:6px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+textarea{min-height:110px;resize:vertical}
+button{margin-top:18px;padding:12px 20px;border:0;border-radius:8px;background:#222;color:#fff;cursor:pointer}
+button.secondary{background:#666;margin-left:8px}
+#result{display:none;margin-top:24px}.prompt{white-space:pre-wrap;background:#f1f3f5;padding:16px;border-radius:8px}
+.error{color:#b00020;margin-top:15px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Prompt Engineering Toolkit</h1>
+<p>Enter your task details and generate a prompt using a selected prompting strategy.</p>
+
+<form id="form">
+<div class="grid">
+<div>
+<label for="output_type">Output Type</label>
+<input id="output_type" value="product description" required>
+</div>
+<div>
+<label for="subject">Subject / Topic</label>
+<input id="subject" value="smart water bottle" required>
+</div>
+<div>
+<label for="tone">Tone</label>
+<input id="tone" value="professional and engaging" required>
+</div>
+<div>
+<label for="max_words">Maximum Words</label>
+<input id="max_words" type="number" value="80" min="1" required>
+</div>
+<div>
+<label for="strategy">Strategy</label>
+<select id="strategy"></select>
+</div>
+<div>
+<label for="role">Role (if required)</label>
+<input id="role" placeholder="e.g. marketing expert">
+</div>
+<div class="full">
+<label for="examples">Examples (optional)</label>
+<textarea id="examples" placeholder="Add examples if the selected strategy needs them."></textarea>
+</div>
+<div class="full">
+<label for="context">Additional Context (optional)</label>
+<textarea id="context" placeholder="Any extra requirements or context..."></textarea>
+</div>
+</div>
+<button type="submit">Generate Prompt</button>
+<button type="button" class="secondary" id="copy">Copy Prompt</button>
+</form>
+
+<div id="error" class="error"></div>
+<div id="result">
+<h2>Generated Prompt</h2>
+<div class="prompt" id="prompt"></div>
+</div>
+</div>
+
+<script>
+const strategySelect = document.getElementById("strategy");
+const form = document.getElementById("form");
+const promptBox = document.getElementById("prompt");
+const result = document.getElementById("result");
+const errorBox = document.getElementById("error");
+
+async function loadStrategies(){
+  const res = await fetch("/strategies");
+  const names = await res.json();
+  strategySelect.innerHTML = names.map(s => `<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("");
+}
+loadStrategies();
+
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  errorBox.textContent = "";
+  result.style.display = "none";
+
+  const variables = {
+    output_type: document.getElementById("output_type").value,
+    subject: document.getElementById("subject").value,
+    tone: document.getElementById("tone").value,
+    max_words: document.getElementById("max_words").value
+  };
+
+  const role = document.getElementById("role").value.trim();
+  const examples = document.getElementById("examples").value.trim();
+  const context = document.getElementById("context").value.trim();
+  if (role) variables.role = role;
+  if (examples) variables.examples = examples;
+  if (context) variables.context = context;
+
+  try{
+    const res = await fetch("/generate", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        strategy: strategySelect.value,
+        variables
+      })
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error);
+    promptBox.textContent = data.prompt;
+    result.style.display = "block";
+  }catch(err){
+    errorBox.textContent = err.message;
+  }
+});
+
+document.getElementById("copy").addEventListener("click", async ()=>{
+  if(!promptBox.textContent) return;
+  await navigator.clipboard.writeText(promptBox.textContent);
+  document.getElementById("copy").textContent = "Copied!";
+  setTimeout(()=>document.getElementById("copy").textContent="Copy Prompt",1200);
+});
+</script>
+</body>
+</html>
